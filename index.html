@@ -1,0 +1,80 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pristine Resume Matcher</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+</head>
+<body>
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <img src="assets/logo.png" class="logo" />
+      <h2>Pristine HR</h2>
+    </div>
+    <ul class="menu">
+      <li class="active">📤 Upload & Match</li>
+      <li>📁 Shortlisted</li>
+      <li id="openSettingsFromNav">⚙️ Settings</li>
+      <li>❔ Help</li>
+    </ul>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <h1>Resume Matcher</h1>
+      <button id="openSettingsBtn" class="btn-outline">⚙️ Settings</button>
+    </div>
+
+    <div class="card">
+      <h3>Job Description</h3>
+      <textarea id="jobDescription" placeholder="Paste job description..."></textarea>
+      <div class="file-row">
+        <input type="file" id="jdFile" accept=".txt,.pdf" />
+        <button class="btn" id="loadJdBtn">Load JD</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Upload Resumes</h3>
+      <input type="file" id="resumeFiles" accept=".pdf,.txt,.docx" multiple />
+      <div class="btn-group">
+        <button class="btn" id="processResumesBtn">Process & Match</button>
+        <button class="btn-outline" id="clearAllBtn">Clear</button>
+      </div>
+      <p id="uploadStatus" class="status"></p>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>Results</h3>
+        <button class="btn" id="exportCsvBtn" disabled>Export CSV</button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Candidate</th>
+            <th>Score</th>
+            <th>Matched</th>
+            <th>Missing</th>
+            <th>Recommendation</th>
+            <th>View</th>
+          </tr>
+        </thead>
+        <tbody id="resultsBody"></tbody>
+      </table>
+    </div>
+
+    <footer>© Pristine Technologies | Dashboard UI</footer>
+  </div>
+
+  <script src="https://unpkg.com/pdfjs-dist@4.4.168/build/pdf.min.js"></script>
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "https://unpkg.com/pdfjs-dist@4.4.168/build/pdf.worker.min.js";
+  </script>
+  <script src="https://unpkg.com/mammoth@1.7.0/mammoth.browser.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
