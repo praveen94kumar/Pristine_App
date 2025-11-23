@@ -1,9 +1,11 @@
-// Pristine Resume Matcher - Keyword + OCR + Themes + Roles + Chatbot
+// Pristine Resume Matcher - Keyword + OCR + Themes + Roles + Chatbot + Rich JD Editor
 
 // ---------- ELEMENTS ----------
-const jdTextarea = document.getElementById("jobDescription");
+const jdEditor = document.getElementById("jobDescription");
 const jdFileInput = document.getElementById("jdFile");
 const loadJdBtn = document.getElementById("loadJdBtn");
+const jdClearBtn = document.getElementById("jdClearBtn");
+const jdToolbarButtons = document.querySelectorAll(".jd-btn");
 
 const resumeFilesInput = document.getElementById("resumeFiles");
 const processBtn = document.getElementById("processResumesBtn");
@@ -59,7 +61,7 @@ const helpQuickButtons = document.querySelectorAll(".help-q");
 
 // ---------- STATE ----------
 let allResults = [];
-let currentView = "all"; // all | shortlisted
+let currentView = "all";
 let users = [];
 let currentUser = null;
 
@@ -83,6 +85,14 @@ function cleanText(text) {
     .replace(/\u0000/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+// JD helpers (rich editor)
+function getJdText() {
+  return jdEditor.innerText.trim();
+}
+function setJdText(text) {
+  jdEditor.innerText = text || "";
 }
 
 const STOPWORDS = new Set([
@@ -170,7 +180,7 @@ function openResumeViewer(name, text) {
   w.document.close();
 }
 
-// ---------- FILE READING (TXT, PDF, DOCX, IMAGE/OCR) ----------
+// ---------- FILE READING ----------
 async function readTxt(file) {
   return await file.text();
 }
@@ -265,7 +275,7 @@ async function extractResumeText(file) {
   return "";
 }
 
-// ---------- RENDERING ----------
+// ---------- RENDERING RESULTS ----------
 function renderResults(viewMode = "all") {
   currentView = viewMode;
   resultsBody.innerHTML = "";
@@ -296,7 +306,7 @@ function renderResults(viewMode = "all") {
   const allCsvRows = [];
   const shortCsvRows = [];
 
-  filtered.forEach((res, idx) => {
+  filtered.forEach((res) => {
     const tr = document.createElement("tr");
 
     const tdName = document.createElement("td");
@@ -320,7 +330,6 @@ function renderResults(viewMode = "all") {
     }
     tdScore.appendChild(badge);
 
-    // Matched keywords as bullet list (top 8)
     const tdMatched = document.createElement("td");
     const matchedList = document.createElement("ul");
     res.matched.slice(0, 8).forEach((item) => {
@@ -330,7 +339,6 @@ function renderResults(viewMode = "all") {
     });
     tdMatched.appendChild(matchedList);
 
-    // Missing keywords as bullet list (top 8) + "View all"
     const tdMissing = document.createElement("td");
     const missingList = document.createElement("ul");
     res.missing.slice(0, 8).forEach((item) => {
@@ -423,6 +431,8 @@ function renderResults(viewMode = "all") {
 }
 
 // ---------- LOGIN & USERS ----------
+let usersRaw = null;
+
 function loadUsers() {
   const raw = localStorage.getItem("pristine_users");
   if (raw) {
@@ -436,7 +446,6 @@ function loadUsers() {
   }
 
   if (!users.length) {
-    // Seed default admin user: Praveen (Admin)
     users.push({
       name: "Praveen",
       email: "praveen@pristine.com",
@@ -473,11 +482,15 @@ function setCurrentUser(user) {
   localStorage.setItem("pristine_current_user", JSON.stringify(user));
   currentUserInfo.textContent = `Logged in as ${user.name} (${user.role})`;
 
-  // Permissions
   const uploadsDisabled = user.role === "viewer";
   resumeFilesInput.disabled = uploadsDisabled;
   processBtn.disabled = uploadsDisabled;
   clearBtn.disabled = uploadsDisabled;
+
+  // Full-screen login: hide login, show app
+  document.body.classList.remove("logged-out");
+  document.body.classList.add("logged-in");
+  loginOverlay.style.display = "none";
 }
 
 function initCurrentUser() {
@@ -485,17 +498,19 @@ function initCurrentUser() {
   if (raw) {
     try {
       const u = JSON.parse(raw);
-      const exist = users.find((x) => x.email === u.email && x.password === u.password);
+      const exist = users.find(
+        (x) => x.email === u.email && x.password === u.password
+      );
       if (exist) {
         setCurrentUser(exist);
-        loginOverlay.style.display = "none";
         return;
       }
     } catch {
       // ignore
     }
   }
-  // If no valid user, show login
+  // Show login only
+  document.body.classList.add("logged-out");
   loginOverlay.style.display = "flex";
 }
 
@@ -512,7 +527,6 @@ loginBtn.addEventListener("click", () => {
   loginError.textContent = "";
   setCurrentUser(found);
   updateUserSelect();
-  loginOverlay.style.display = "none";
 });
 
 userSelect.addEventListener("change", () => {
@@ -522,7 +536,7 @@ userSelect.addEventListener("change", () => {
   }
 });
 
-// ---------- SETTINGS: THEME ----------
+// ---------- THEME ----------
 function applyTheme(theme) {
   const body = document.body;
   body.classList.remove("theme-light", "theme-dark", "theme-gold");
@@ -548,7 +562,7 @@ applyThemeBtn.addEventListener("click", () => {
   alert("Theme applied.");
 });
 
-// ---------- SETTINGS: USER MANAGEMENT ----------
+// ---------- USER MANAGEMENT ----------
 function renderUserTable() {
   userTableBody.innerHTML = "";
   users.forEach((u, idx) => {
@@ -639,245 +653,13 @@ saveUserBtn.addEventListener("click", () => {
   alert("User saved.");
 });
 
-// Settings modal open/close
+// Settings modal
 function openSettingsModal() {
   settingsModal.classList.remove("hidden");
-  // Show correct tab content
   showThemeTab();
-  // Check role
   if (currentUser && currentUser.role === "admin") {
     userMgmtInfo.textContent =
       "You are an Admin. You can add, edit and remove users.";
     userMgmtContent.classList.remove("hidden");
     renderUserTable();
   } else {
-    userMgmtInfo.textContent =
-      "User management is available only for Admin users.";
-    userMgmtContent.classList.add("hidden");
-  }
-}
-
-function closeSettingsModal() {
-  settingsModal.classList.add("hidden");
-}
-
-openSettingsBtn.addEventListener("click", openSettingsModal);
-navSettings.addEventListener("click", () => {
-  setActiveNav("navSettings");
-  openSettingsModal();
-});
-settingsCloseBtn.addEventListener("click", closeSettingsModal);
-settingsCloseFooterBtn.addEventListener("click", closeSettingsModal);
-
-// Settings tab switching
-function showThemeTab() {
-  tabTheme.classList.add("active");
-  tabUsers.classList.remove("active");
-  themePanel.classList.remove("hidden");
-  usersPanel.classList.add("hidden");
-}
-
-function showUsersTab() {
-  tabTheme.classList.remove("active");
-  tabUsers.classList.add("active");
-  themePanel.classList.add("hidden");
-  usersPanel.classList.remove("hidden");
-}
-
-tabTheme.addEventListener("click", showThemeTab);
-tabUsers.addEventListener("click", showUsersTab);
-
-// ---------- HELP / CHATBOT ----------
-function addHelpMessage(text, from = "bot") {
-  const div = document.createElement("div");
-  div.className = "help-msg " + from;
-  const span = document.createElement("span");
-  span.textContent = text;
-  div.appendChild(span);
-  helpChat.appendChild(div);
-  helpChat.scrollTop = helpChat.scrollHeight;
-}
-
-function getBotReply(question) {
-  const q = question.toLowerCase();
-  if (q.includes("upload")) {
-    return "Use 'Upload Resumes' to select .txt, .pdf, .docx or image resumes. Then click 'Process & Match'.";
-  }
-  if (q.includes("pdf")) {
-    return "PDFs that are scanned images are processed via OCR. If text quality is poor, results may be low. Try a text-based PDF or DOCX for best results.";
-  }
-  if (q.includes("score")) {
-    return "Score is calculated by comparing keywords in the JD to the resume. More overlap = higher score. Above 75% is Strong fit, 50–74% is Consider, below 50% Needs review.";
-  }
-  if (q.includes("shortlist")) {
-    return "Use 'Shortlist' on a candidate row to mark them as shortlisted. The 'Shortlisted' tab shows only these candidates and lets you export a shortlist report.";
-  }
-  if (q.includes("export")) {
-    return "Use 'Export All CSV' to download all candidates or 'Export Shortlisted' for just shortlisted candidates.";
-  }
-  if (q.includes("theme")) {
-    return "In Settings → Theme, you can switch between Light, Dark, and Pristine Gold themes.";
-  }
-  return "I'm a simple built-in assistant. I can help with using this tool: uploads, scores, shortlist, export, themes. Try asking about one of those.";
-}
-
-function openHelpPanel() {
-  helpPanel.classList.remove("hidden");
-  if (!helpChat.hasChildNodes()) {
-    addHelpMessage("Hi, I'm your HR assistant. How can I help you today?");
-  }
-}
-
-function closeHelpPanelFn() {
-  helpPanel.classList.add("hidden");
-}
-
-navHelp.addEventListener("click", () => {
-  setActiveNav("navHelp");
-  openHelpPanel();
-});
-closeHelpBtn.addEventListener("click", closeHelpPanelFn);
-
-helpSendBtn.addEventListener("click", () => {
-  const text = helpInput.value.trim();
-  if (!text) return;
-  helpInput.value = "";
-  addHelpMessage(text, "me");
-  const reply = getBotReply(text);
-  setTimeout(() => addHelpMessage(reply, "bot"), 400);
-});
-
-helpInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") {
-    helpSendBtn.click();
-  }
-});
-
-helpQuickButtons.forEach((btn) => {
-  btn.addEventListener("click", () => {
-    const q = btn.dataset.q;
-    addHelpMessage(q, "me");
-    const reply = getBotReply(q);
-    setTimeout(() => addHelpMessage(reply, "bot"), 300);
-  });
-});
-
-// ---------- JD + RESUME HANDLERS ----------
-loadJdBtn.addEventListener("click", async () => {
-  const file = jdFileInput.files?.[0];
-  if (!file) {
-    alert("Please select a JD file (.txt or .pdf).");
-    return;
-  }
-  try {
-    setStatus("Reading job description...");
-    let text = "";
-    const lower = file.name.toLowerCase();
-    if (lower.endsWith(".txt")) {
-      text = await readTxt(file);
-    } else if (lower.endsWith(".pdf")) {
-      text = await readPdfText(file);
-    } else {
-      alert("Unsupported JD file type. Use .txt or .pdf.");
-      setStatus("");
-      return;
-    }
-    jdTextarea.value = cleanText(text);
-    setStatus("Job description loaded from file.");
-  } catch (err) {
-    console.error(err);
-    alert("Failed to read JD file.");
-    setStatus("Error reading JD file.");
-  }
-});
-
-processBtn.addEventListener("click", async () => {
-  const jdText = jdTextarea.value.trim();
-  if (!jdText) {
-    alert("Please paste or load the job description first.");
-    return;
-  }
-
-  const files = Array.from(resumeFilesInput.files || []);
-  if (!files.length) {
-    alert("Please upload at least one resume.");
-    return;
-  }
-
-  setStatus("Reading resumes and extracting text (this may take time for PDFs/images)...");
-  allResults = [];
-
-  for (const file of files) {
-    try {
-      const text = await extractResumeText(file);
-      if (!text || text.length < 20) {
-        log("Skipped (no usable text):", file.name);
-        continue;
-      }
-      const { score, matched, missing } = keywordMatch(jdText, text);
-      const recommendation =
-        score >= 75 ? "Strong fit" : score >= 50 ? "Consider" : "Needs review";
-
-      allResults.push({
-        candidate: file.name,
-        score,
-        matched,
-        missing,
-        recommendation,
-        resumeText: text,
-        shortlisted: false,
-      });
-    } catch (err) {
-      console.error("Error processing resume:", file.name, err);
-    }
-  }
-
-  if (!allResults.length) {
-    setStatus("No valid resumes processed. Check file types or try text-based PDFs.");
-    renderResults("all");
-    return;
-  }
-
-  setStatus(`Processed ${allResults.length} resume(s).`);
-  renderResults("all");
-  setActiveNav("navUpload");
-});
-
-clearBtn.addEventListener("click", () => {
-  jdTextarea.value = "";
-  jdFileInput.value = "";
-  resumeFilesInput.value = "";
-  allResults = [];
-  resultsBody.innerHTML = "";
-  exportBtn.disabled = true;
-  exportShortBtn.disabled = true;
-  setStatus("");
-  resultsTitle.textContent = "Results (All Candidates)";
-});
-
-// Nav: Upload
-navUpload.addEventListener("click", () => {
-  renderResults("all");
-  setActiveNav("navUpload");
-  setStatus("Showing all candidates.");
-});
-
-// Nav: Shortlisted
-navShortlisted.addEventListener("click", () => {
-  renderResults("shortlisted");
-  setActiveNav("navShortlisted");
-  setStatus("Showing shortlisted candidates.");
-});
-
-// ---------- INIT ----------
-function init() {
-  loadUsers();
-  initTheme();
-  updateUserSelect();
-  initCurrentUser();
-  renderResults("all");
-  setActiveNav("navUpload");
-  setStatus("");
-}
-
-init();
