@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,38 +7,65 @@
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" type="image/png" href="assets/logo.png" />
 </head>
-<body>
+<body class="theme-gold">
+  <!-- Login Overlay -->
+  <div id="loginOverlay" class="login-overlay">
+    <div class="login-card">
+      <h2>Pristine HR Login</h2>
+      <p class="login-sub">
+        Default admin: <b>praveen@pristine.com</b> / <b>admin123</b>
+      </p>
+      <label>Email</label>
+      <input type="email" id="loginEmail" placeholder="Enter email" />
+      <label>Password</label>
+      <input type="password" id="loginPassword" placeholder="Enter password" />
+      <button class="btn" id="loginBtn">Login</button>
+      <p id="loginError" class="status error"></p>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
   <div class="sidebar">
     <div class="sidebar-header">
-      <img src="assets/logo.png" class="logo" />
+      <img src="assets/logo.png" class="logo" alt="Pristine Logo" />
       <h2>Pristine HR</h2>
     </div>
     <ul class="menu">
-      <li class="active">📤 Upload & Match</li>
-      <li>📁 Shortlisted</li>
-      <li id="openSettingsFromNav">⚙️ Settings</li>
-      <li>❔ Help</li>
+      <li id="navUpload" class="active">📤 Upload & Match</li>
+      <li id="navShortlisted">📁 Shortlisted</li>
+      <li id="navSettings">⚙️ Settings</li>
+      <li id="navHelp">❔ Help</li>
     </ul>
   </div>
 
+  <!-- Main -->
   <div class="main">
     <div class="topbar">
-      <h1>Resume Matcher</h1>
-      <button id="openSettingsBtn" class="btn-outline">⚙️ Settings</button>
+      <div>
+        <h1>Resume Matcher – Pristine Technologies</h1>
+        <p id="currentUserInfo" class="user-info"></p>
+      </div>
+      <div class="topbar-actions">
+        <select id="userSelect" class="user-select"></select>
+        <button id="openSettingsBtn" class="btn-outline">⚙️ Settings</button>
+      </div>
     </div>
 
-    <div class="card">
+    <!-- Job Description -->
+    <div class="card" id="jdSection">
       <h3>Job Description</h3>
       <textarea id="jobDescription" placeholder="Paste job description..."></textarea>
       <div class="file-row">
         <input type="file" id="jdFile" accept=".txt,.pdf" />
-        <button class="btn" id="loadJdBtn">Load JD</button>
+        <button class="btn" id="loadJdBtn">Load JD from file</button>
       </div>
     </div>
 
-    <div class="card">
+    <!-- Upload Resumes -->
+    <div class="card" id="uploadSection">
       <h3>Upload Resumes</h3>
-      <input type="file" id="resumeFiles" accept=".pdf,.txt,.docx" multiple />
+      <p>You can upload .txt, .pdf, .docx, or image resumes (.jpg/.png).</p>
+      <input type="file" id="resumeFiles" accept=".pdf,.txt,.docx,image/*" multiple />
       <div class="btn-group">
         <button class="btn" id="processResumesBtn">Process & Match</button>
         <button class="btn-outline" id="clearAllBtn">Clear</button>
@@ -47,11 +73,16 @@
       <p id="uploadStatus" class="status"></p>
     </div>
 
-    <div class="card">
+    <!-- Results -->
+    <div class="card" id="resultsSection">
       <div class="card-header">
-        <h3>Results</h3>
-        <button class="btn" id="exportCsvBtn" disabled>Export CSV</button>
+        <h3 id="resultsTitle">Results (All Candidates)</h3>
+        <div class="card-actions">
+          <button class="btn" id="exportCsvBtn" disabled>Export All CSV</button>
+          <button class="btn-outline" id="exportShortlistedBtn" disabled>Export Shortlisted</button>
+        </div>
       </div>
+
       <table>
         <thead>
           <tr>
@@ -60,21 +91,110 @@
             <th>Matched</th>
             <th>Missing</th>
             <th>Recommendation</th>
-            <th>View</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody id="resultsBody"></tbody>
       </table>
     </div>
 
-    <footer>© Pristine Technologies | Dashboard UI</footer>
+    <footer>© Pristine Technologies & Industries, Jaipur</footer>
   </div>
 
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Settings</h3>
+        <button class="btn-outline btn-small" id="settingsCloseBtn">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="settings-tabs">
+          <button id="tabTheme" class="settings-tab active">Theme</button>
+          <button id="tabUsers" class="settings-tab">Manage Users</button>
+        </div>
+
+        <!-- Theme Panel -->
+        <div id="themePanel" class="settings-panel">
+          <h4>Theme</h4>
+          <label><input type="radio" name="theme" value="light" /> Light</label>
+          <label><input type="radio" name="theme" value="dark" /> Dark</label>
+          <label><input type="radio" name="theme" value="gold" checked /> Pristine Gold</label>
+          <button class="btn" id="applyThemeBtn">Apply Theme</button>
+        </div>
+
+        <!-- Users Panel -->
+        <div id="usersPanel" class="settings-panel hidden">
+          <h4>User Management</h4>
+          <p id="userMgmtInfo" class="status"></p>
+
+          <div id="userMgmtContent" class="hidden">
+            <table class="user-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="userTableBody"></tbody>
+            </table>
+
+            <h5>Add / Edit User</h5>
+            <div class="user-form">
+              <input type="hidden" id="editUserIndex" />
+              <input type="text" id="userName" placeholder="Name" />
+              <input type="email" id="userEmail" placeholder="Email" />
+              <input type="password" id="userPassword" placeholder="Password" />
+              <select id="userRole">
+                <option value="admin">Admin</option>
+                <option value="recruiter">Recruiter</option>
+                <option value="viewer">Viewer</option>
+              </select>
+              <button class="btn" id="saveUserBtn">Save User</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-outline btn-small" id="settingsCloseFooterBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Help / Chatbot Panel -->
+  <div id="helpPanel" class="help-panel hidden">
+    <div class="help-header">
+      <h3>HR Assistant</h3>
+      <button class="btn-outline btn-small" id="closeHelpBtn">✕</button>
+    </div>
+    <div id="helpChat" class="help-chat">
+      <!-- Messages will appear here -->
+    </div>
+    <div class="help-quick">
+      <button class="btn-outline help-q" data-q="How do I upload resumes?">Upload resumes</button>
+      <button class="btn-outline help-q" data-q="Why is PDF not working?">PDF issue</button>
+      <button class="btn-outline help-q" data-q="How is score calculated?">Score logic</button>
+      <button class="btn-outline help-q" data-q="What is shortlist?">Shortlist meaning</button>
+    </div>
+    <div class="help-input">
+      <input type="text" id="helpInput" placeholder="Ask something..." />
+      <button class="btn" id="helpSendBtn">Send</button>
+    </div>
+  </div>
+
+  <!-- Libraries -->
   <script src="https://unpkg.com/pdfjs-dist@4.4.168/build/pdf.min.js"></script>
   <script>
-    pdfjsLib.GlobalWorkerOptions.workerSrc = "https://unpkg.com/pdfjs-dist@4.4.168/build/pdf.worker.min.js";
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      "https://unpkg.com/pdfjs-dist@4.4.168/build/pdf.worker.min.js";
   </script>
   <script src="https://unpkg.com/mammoth@1.7.0/mammoth.browser.min.js"></script>
+  <script src="https://unpkg.com/tesseract.js@5.0.3/dist/tesseract.min.js"></script>
+
+  <!-- App Logic -->
   <script src="script.js"></script>
 </body>
 </html>
+
