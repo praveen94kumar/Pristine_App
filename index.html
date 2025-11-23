@@ -7,113 +7,124 @@
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" type="image/png" href="assets/logo.png" />
 </head>
+<body>
 
-<body class="theme-gold logged-out">
-
-  <!-- ✅ FULL-SCREEN LOGIN -->
+  <!-- FULL-SCREEN LOGIN -->
   <div id="loginOverlay" class="login-overlay">
-    <div class="login-box">
-      <img src="assets/logo.png" class="login-logo" alt="Pristine Logo">
+    <div class="login-card">
+      <img src="assets/logo.png" alt="Pristine Logo" class="login-logo" />
       <h2>Pristine HR – Secure Access</h2>
-      <p class="default-admin">Default admin: <b>praveen@pristine.com</b> / <b>admin123</b></p>
+      <p class="login-sub">
+        Default admin: <b>praveen@pristine.com</b> / <b>admin123</b>
+      </p>
 
-      <label>Email</label>
-      <input type="email" id="loginEmail" placeholder="Enter email">
+      <label for="loginEmail">Email</label>
+      <input type="email" id="loginEmail" placeholder="Enter email" />
 
-      <label>Password</label>
-      <input type="password" id="loginPassword" placeholder="Enter password">
+      <label for="loginPassword">Password</label>
+      <input type="password" id="loginPassword" placeholder="Enter password" />
 
-      <button id="loginBtn" class="btn login-btn">Login</button>
+      <button class="btn login-btn" id="loginBtn">Login</button>
+      <p id="loginError" class="status error"></p>
     </div>
   </div>
 
-  <!-- ✅ SIDEBAR -->
-  <div class="sidebar">
-    <div class="sidebar-header">
-      <img src="assets/logo.png" class="logo" alt="Pristine Logo" />
-      <h2>Pristine HR</h2>
+  <!-- APP WRAPPER -->
+  <div id="appRoot" class="app-root hidden">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <img src="assets/logo.png" class="logo" alt="Pristine Logo" />
+        <h2>Pristine HR</h2>
+      </div>
+
+      <ul class="menu">
+        <li id="navUpload" class="active">📤 Upload & Match</li>
+        <li id="navShortlisted">📁 Shortlisted</li>
+        <li id="navSettings">⚙️ Settings</li>
+        <li id="navHelp">❔ Help</li>
+      </ul>
     </div>
 
-    <ul class="menu">
-      <li id="navUpload" class="active">📤 Upload & Match</li>
-      <li id="navShortlisted">📁 Shortlisted</li>
-      <li id="navSettings">⚙️ Settings</li>
-      <li id="navHelp">❔ Help</li>
-    </ul>
+    <!-- Main Content -->
+    <div class="main">
+      <div class="topbar">
+        <h1>Resume Matcher – Pristine Technologies</h1>
+        <p id="currentUserInfo" class="user-info"></p>
+      </div>
+
+      <!-- Job Description -->
+      <div class="card" id="jdSection">
+        <h3>Job Description</h3>
+        <div class="jd-toolbar">
+          <button type="button" class="jd-toolbar-btn" data-cmd="bold"><b>B</b></button>
+          <button type="button" class="jd-toolbar-btn" data-cmd="italic"><i>I</i></button>
+          <button type="button" class="jd-toolbar-btn" data-cmd="underline"><u>U</u></button>
+          <button type="button" class="jd-toolbar-btn" data-cmd="insertUnorderedList">• Bullets</button>
+          <button type="button" class="jd-toolbar-btn" data-cmd="insertOrderedList">1. Numbered</button>
+        </div>
+        <div id="jobDescription" class="jd-editor" contenteditable="true"></div>
+
+        <div class="file-row">
+          <input type="file" id="jdFile" accept=".txt,.pdf,.docx" />
+          <button class="btn" id="loadJdBtn">Load JD from file</button>
+          <button class="btn-outline btn-small" id="clearJdBtn">Clear JD</button>
+        </div>
+      </div>
+
+      <!-- Upload Resumes -->
+      <div class="card" id="uploadSection">
+        <h3>Upload Resumes</h3>
+        <p>You can upload .txt, .pdf, .docx, or image resumes (.jpg/.png).</p>
+        <input type="file" id="resumeFiles" accept=".pdf,.txt,.docx,image/*" multiple />
+
+        <div class="btn-group">
+          <button class="btn" id="processResumesBtn">Process & Match</button>
+          <button class="btn-outline" id="clearAllBtn">Clear</button>
+        </div>
+        <p id="uploadStatus" class="status"></p>
+      </div>
+
+      <!-- Results -->
+      <div class="card" id="resultsSection">
+        <div class="card-header">
+          <h3 id="resultsTitle">Results (All Candidates)</h3>
+          <div class="card-actions">
+            <button class="btn" id="exportCsvBtn" disabled>Export All CSV</button>
+            <button class="btn-outline" id="exportShortlistedBtn" disabled>Export Shortlisted</button>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Candidate</th>
+              <th>Score</th>
+              <th>Matched</th>
+              <th>Missing</th>
+              <th>Recommendation</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="resultsBody"></tbody>
+        </table>
+      </div>
+
+      <footer>© Pristine Technologies & Industries, Jaipur</footer>
+    </div>
   </div>
 
-  <!-- ✅ MAIN CONTENT -->
-  <div class="main">
-
-    <div class="topbar">
-      <h1>Resume Matcher – Pristine Technologies</h1>
-    </div>
-
-    <!-- ✅ JOB DESCRIPTION CARD -->
-    <div class="card">
-      <h3>Job Description</h3>
-
-      <!-- Rich Text Editor -->
-      <div id="jobDescription" class="jd-editor" contenteditable="true"></div>
-
-      <div class="file-row">
-        <input type="file" id="jdFile" accept=".txt,.pdf,.docx" />
-        <button class="btn" id="loadJdBtn">Load JD from file</button>
-        <button class="btn-outline" id="clearJdBtn">Clear JD</button>
-      </div>
-    </div>
-
-    <!-- ✅ UPLOAD RESUMES -->
-    <div class="card">
-      <h3>Upload Resumes</h3>
-      <p>You can upload .txt, .pdf, .docx, or image resumes (.jpg/.png).</p>
-
-      <input type="file" id="resumeFiles" accept=".pdf,.txt,.docx,image/*" multiple />
-
-      <div class="btn-group">
-        <button class="btn" id="processResumesBtn">Process & Match</button>
-        <button class="btn-outline" id="clearAllBtn">Clear</button>
-      </div>
-    </div>
-
-    <!-- ✅ RESULTS -->
-    <div class="card">
-      <div class="card-header">
-        <h3 id="resultsTitle">Results (All Candidates)</h3>
-        <button class="btn" id="exportCsvBtn" disabled>Export All CSV</button>
-        <button class="btn-outline" id="exportShortlistedBtn" disabled>Export Shortlisted</button>
-      </div>
-
-      <table>
-        <thead>
-          <tr>
-            <th>Candidate</th>
-            <th>Score</th>
-            <th>Matched</th>
-            <th>Missing</th>
-            <th>Recommendation</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="resultsBody"></tbody>
-      </table>
-    </div>
-
-    <footer>© Pristine Technologies & Industries, Jaipur</footer>
-  </div>
-
-  <!-- ✅ REQUIRED LIBRARIES -->
+  <!-- Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.js"></script>
   <script>
+    // Configure PDF.js worker
     pdfjsLib.GlobalWorkerOptions.workerSrc =
       "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.js";
   </script>
-
   <script src="https://unpkg.com/mammoth@1.7.0/mammoth.browser.min.js"></script>
   <script src="https://unpkg.com/tesseract.js@5.0.3/dist/tesseract.min.js"></script>
 
-  <!-- ✅ MAIN SCRIPT -->
+  <!-- App Logic -->
   <script src="script.js"></script>
-
 </body>
 </html>
