@@ -7,11 +7,12 @@
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" type="image/png" href="assets/logo.png" />
 </head>
-<body class="theme-gold">
-  <!-- Login Overlay -->
+<body class="theme-gold logged-out">
+  <!-- Full-screen Login -->
   <div id="loginOverlay" class="login-overlay">
     <div class="login-card">
-      <h2>Pristine HR Login</h2>
+      <img src="assets/logo.png" alt="Pristine Logo" class="login-logo" />
+      <h2>Pristine HR – Secure Access</h2>
       <p class="login-sub">
         Default admin: <b>praveen@pristine.com</b> / <b>admin123</b>
       </p>
@@ -19,7 +20,7 @@
       <input type="email" id="loginEmail" placeholder="Enter email" />
       <label>Password</label>
       <input type="password" id="loginPassword" placeholder="Enter password" />
-      <button class="btn" id="loginBtn">Login</button>
+      <button class="btn login-btn" id="loginBtn">Login</button>
       <p id="loginError" class="status error"></p>
     </div>
   </div>
@@ -54,7 +55,21 @@
     <!-- Job Description -->
     <div class="card" id="jdSection">
       <h3>Job Description</h3>
-      <textarea id="jobDescription" placeholder="Paste job description..."></textarea>
+      <p class="jd-hint">
+        Paste the job description or type it manually. You can also load it from a file.
+      </p>
+
+      <div class="jd-toolbar">
+        <button type="button" class="btn-small btn-outline jd-btn" data-cmd="bold"><b>B</b></button>
+        <button type="button" class="btn-small btn-outline jd-btn" data-cmd="italic"><i>I</i></button>
+        <button type="button" class="btn-small btn-outline jd-btn" data-cmd="underline"><u>U</u></button>
+        <button type="button" class="btn-small btn-outline jd-btn" data-cmd="ul">• List</button>
+        <button type="button" class="btn-small btn-outline jd-btn" data-cmd="ol">1. List</button>
+        <button type="button" class="btn-small btn-outline" id="jdClearBtn">Clear JD</button>
+      </div>
+
+      <div id="jobDescription" class="jd-editor" contenteditable="true"></div>
+
       <div class="file-row">
         <input type="file" id="jdFile" accept=".txt,.pdf" />
         <button class="btn" id="loadJdBtn">Load JD from file</button>
@@ -169,9 +184,7 @@
       <h3>HR Assistant</h3>
       <button class="btn-outline btn-small" id="closeHelpBtn">✕</button>
     </div>
-    <div id="helpChat" class="help-chat">
-      <!-- Messages will appear here -->
-    </div>
+    <div id="helpChat" class="help-chat"></div>
     <div class="help-quick">
       <button class="btn-outline help-q" data-q="How do I upload resumes?">Upload resumes</button>
       <button class="btn-outline help-q" data-q="Why is PDF not working?">PDF issue</button>
@@ -197,4 +210,3 @@
   <script src="script.js"></script>
 </body>
 </html>
-
